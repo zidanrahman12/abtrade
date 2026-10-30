@@ -1,0 +1,36 @@
+// Firebase Storage Rules for AB TRADE
+// Copy these rules to Firebase Console → Storage → Rules
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper to check if user is admin
+    function isAdmin() {
+      return request.auth != null && 
+             exists(/databases/(default)/documents/admins/$(request.auth.uid));
+    }
+
+    // Product images - Public read, admin write
+    match /products/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Category images - Public read, admin write
+    match /categories/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // User uploads - Admin only
+    match /users/{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // Deny all other access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
